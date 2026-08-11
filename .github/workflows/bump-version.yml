@@ -1,8 +1,8 @@
 name: Bump Version
 
-# On push to main, auto-bump patch version and create a tag.
-# Skip if the commit message contains [skip ci] or [bump] (prevents infinite loop).
-# For minor/major bumps, manually edit the version in SKILL.md frontmatter via a PR.
+# On push to main, auto-bump patch version via a bump branch + PR.
+# Skips commits with [bump] or [skip ci] to prevent infinite loops.
+# For minor/major bumps, manually edit the version in SKILL.md frontmatter.
 
 on:
   push:
@@ -17,6 +17,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +33,7 @@ jobs:
           echo "current: $VER"
 
       - name: Bump patch version
-        run: |
-          bash scripts/bump-version.sh patch
+        run: bash scripts/bump-version.sh patch
 
       - name: Read new version
         id: newver
@@ -42,15 +42,31 @@ jobs:
           echo "version=$VER" >> $GITHUB_OUTPUT
           echo "new: $VER"
 
-      - name: Commit version bump
+      - name: Create bump PR and tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW: ${{ steps.newver.outputs.version }}
+          OLD: ${{ steps.version.outputs.current }}
         run: |
+          BRANCH="bump/v${NEW}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add SKILL.md
-          git commit -m "[bump] ${{ steps.version.outputs.current }} → ${{ steps.newver.outputs.version }} [skip ci]"
-          git tag "v${{ steps.newver.outputs.version }}"
 
-      - name: Push version bump and tag
-        run: |
-          git push origin main
-          git push origin "v${{ steps.newver.outputs.version }}"
+          git checkout -b "$BRANCH"
+          git add SKILL.md
+          git commit -m "chore: bump version ${OLD} → ${NEW} [bump][skip ci]"
+          git tag "v${NEW}"
+          git push origin "$BRANCH" --tags
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: bump version ${OLD} → ${NEW} [bump]" \
+            --body "Auto-bump patch version after merge to main.
+
+          | From | To |
+          |------|----|
+          | **${OLD}** | **${NEW}** |
+
+          Tag \`v${NEW}\` already exists — merging this PR keeps \`main\` in sync." \
+            --label "bump"
