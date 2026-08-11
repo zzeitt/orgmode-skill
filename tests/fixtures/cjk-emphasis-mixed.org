@@ -1,0 +1,29 @@
+* CJK Emphasis — Mixed Content (errors + source blocks)
+
+Errors outside source blocks should be detected and fixed.
+Same patterns inside blocks should be IGNORED.
+
+** Outside block — WRONG
+
+结果：=lto1= 结果 ← WRONG: should be detected
+
+** Source block — should be IGNORED
+
+#+BEGIN_SRC python
+result = 1  # 结果：=lto1= should NOT be flagged
+x = $a$  # 对$math$测试 should NOT be flagged
+#+END_SRC
+
+** Outside block — another WRONG pattern
+
+对$x$测试 ← WRONG: should be detected
+
+** Another source block
+
+#+BEGIN_SRC shell
+echo "对$x$测试 结果：=lto1="  # NOT flagged
+#+END_SRC
+
+** Clean line — OK
+
+结果： =lto1= 正确 ← OK: proper spacing

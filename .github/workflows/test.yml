@@ -1,0 +1,23 @@
+name: Test orgmode-skill scripts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq perl
+
+      - name: Run unit tests
+        run: bash tests/test-check-fix.sh -v
