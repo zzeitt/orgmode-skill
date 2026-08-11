@@ -81,6 +81,16 @@ valid boundaries:
 对 $x$ 测试   ← OK: spaces around $
 ```
 
+## References
+
+Derived from [majorgreys/claude-orgmode](https://github.com/majorgreys/claude-orgmode/tree/master/skills/orgmode) — the original org-mode skill providing core syntax references (headings, lists, links, properties, timestamps, examples).
+
+Additions in this fork:
+- **CJK boundary rules** for emphasis (`=`, `~`, `+`) and math (`$`) delimiters
+- **`check-org-cjk-emphasis.sh`** — detect CJK touching markup delimiters
+- **`fix-org-cjk-emphasis.sh`** — auto-correct CJK-delimiter spacing (dry-run / diff / in-place)
+- **Unit tests** with deterministic fixtures and GitHub Actions CI
+
 ## License
 
 MIT
