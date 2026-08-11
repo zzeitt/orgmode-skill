@@ -1,0 +1,57 @@
+name: Bump Version
+
+# On push to main, auto-bump patch version and create a tag.
+# Skip if the commit message contains [skip ci] or [bump] (prevents infinite loop).
+# For minor/major bumps, manually edit VERSION in a PR.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'VERSION'   # Don't trigger on version-only pushes (guard)
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    if: |
+      ! contains(github.event.head_commit.message, '[skip ci]') &&
+      ! contains(github.event.head_commit.message, '[bump]')
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Read current version
+        id: version
+        run: |
+          VER=$(cat VERSION | tr -d '[:space:]')
+          echo "current=$VER" >> $GITHUB_OUTPUT
+
+      - name: Bump patch version
+        id: bump
+        run: |
+          bash scripts/bump-version.sh patch
+
+      - name: Read new version
+        id: newver
+        run: |
+          VER=$(cat VERSION | tr -d '[:space:]')
+          echo "version=$VER" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "[bump] ${{ steps.version.outputs.current }} → ${{ steps.newver.outputs.version }} [skip ci]"
+          git tag "v${{ steps.newver.outputs.version }}"
+
+      - name: Push tag
+        run: |
+          git push origin main
+          git push origin "v${{ steps.newver.outputs.version }}"
