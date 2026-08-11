@@ -1,6 +1,7 @@
 name: Release
 
-# Create a GitHub release when a version tag is pushed.
+# Create a GitHub release when a version tag (v*) is pushed.
+# The tag is created by bump-version.yml on merge to main.
 
 on:
   push:
@@ -16,6 +17,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read version from SKILL.md
+        run: |
+          VER=$(awk '/^---/{f++; next} f==1 && /^version:/{print $2; exit}' SKILL.md)
+          echo "SKILL.md version: $VER"
+          echo "Tag version: ${{ github.ref_name }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

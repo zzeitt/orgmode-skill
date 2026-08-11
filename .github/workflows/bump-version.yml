@@ -2,13 +2,11 @@ name: Bump Version
 
 # On push to main, auto-bump patch version and create a tag.
 # Skip if the commit message contains [skip ci] or [bump] (prevents infinite loop).
-# For minor/major bumps, manually edit VERSION in a PR.
+# For minor/major bumps, manually edit the version in SKILL.md frontmatter via a PR.
 
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'VERSION'   # Don't trigger on version-only pushes (guard)
 
 jobs:
   bump:
@@ -29,29 +27,30 @@ jobs:
       - name: Read current version
         id: version
         run: |
-          VER=$(cat VERSION | tr -d '[:space:]')
+          VER=$(awk '/^---/{f++; next} f==1 && /^version:/{print $2; exit}' SKILL.md)
           echo "current=$VER" >> $GITHUB_OUTPUT
+          echo "current: $VER"
 
       - name: Bump patch version
-        id: bump
         run: |
           bash scripts/bump-version.sh patch
 
       - name: Read new version
         id: newver
         run: |
-          VER=$(cat VERSION | tr -d '[:space:]')
+          VER=$(awk '/^---/{f++; next} f==1 && /^version:/{print $2; exit}' SKILL.md)
           echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "new: $VER"
 
       - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add VERSION
+          git add SKILL.md
           git commit -m "[bump] ${{ steps.version.outputs.current }} → ${{ steps.newver.outputs.version }} [skip ci]"
           git tag "v${{ steps.newver.outputs.version }}"
 
-      - name: Push tag
+      - name: Push version bump and tag
         run: |
           git push origin main
           git push origin "v${{ steps.newver.outputs.version }}"

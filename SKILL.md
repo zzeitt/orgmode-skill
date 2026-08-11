@@ -1,5 +1,6 @@
 ---
 name: orgmode
+version: 1.0.0
 description: |
   Org-mode syntax and formatting knowledge. Reference docs for headings, lists, links, properties, timestamps, and other org-mode constructs.
 

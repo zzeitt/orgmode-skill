@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bump version number in VERSION file.
+# Bump version number in SKILL.md frontmatter.
 # Usage:
 #   bump-version.sh patch    # 1.0.0 → 1.0.1 (bugfix/improvement)
 #   bump-version.sh minor    # 1.0.0 → 1.1.0 (new feature)
@@ -9,14 +9,20 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VERSION_FILE="$SCRIPT_DIR/../VERSION"
+SKILL_FILE="$SCRIPT_DIR/../SKILL.md"
 
-if [ ! -f "$VERSION_FILE" ]; then
-  echo "ERROR: VERSION file not found at $VERSION_FILE"
+if [ ! -f "$SKILL_FILE" ]; then
+  echo "ERROR: SKILL.md not found at $SKILL_FILE"
   exit 1
 fi
 
-CURRENT=$(cat "$VERSION_FILE" | tr -d '[:space:]')
+# Extract version from YAML frontmatter (between --- delimiters)
+CURRENT=$(awk '/^---/{f++; next} f==1 && /^version:/{print $2; exit}' "$SKILL_FILE")
+if [ -z "$CURRENT" ]; then
+  echo "ERROR: 'version:' not found in SKILL.md frontmatter"
+  exit 1
+fi
+
 IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
 
 PART="${1:-patch}"
@@ -32,5 +38,8 @@ case "$PART" in
 esac
 
 NEW="$MAJOR.$MINOR.$PATCH"
-echo -n "$NEW" > "$VERSION_FILE"
+
+# Update version in SKILL.md frontmatter
+sed -i "0,/^version:.*/s/^version:.*/version: $NEW/" "$SKILL_FILE"
+
 echo "$CURRENT → $NEW"
