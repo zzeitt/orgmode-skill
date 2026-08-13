@@ -1,6 +1,7 @@
 #!/bin/bash
-# Fix org-mode markup delimiters ($, =, ~, +) touching CJK characters by inserting
-# a space. These will fail to render in org-mode without proper whitespace boundaries.
+# Fix org-mode markup delimiters (*, /, _, =, ~, +, $) touching CJK characters by
+# inserting a space. These will fail to render in org-mode without proper whitespace
+# boundaries.
 #
 # Usage:
 #   fix-org-cjk-emphasis.sh <file.org>            dry-run: show what would change
@@ -31,7 +32,7 @@ if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
   echo "  --diff      Show unified diff without modifying"
   echo "  --in-place  Apply fixes directly to the file"
   echo ""
-  echo "Fixes CJK characters / full-width punctuation touching \$ = ~ + delimiters."
+  echo "Fixes CJK characters / full-width punctuation touching * / _ = ~ + \$ delimiters."
   echo "Skips lines inside #+BEGIN_SRC / #+END_SRC blocks."
   exit 1
 fi
@@ -40,7 +41,7 @@ FIXED=$(mktemp)
 trap 'rm -f "$FIXED"' EXIT
 
 # Perl script that inserts a space between CJK characters (including fullwidth
-# punctuation) and $ = ~ + delimiters. Skips source-block content.
+# punctuation) and * / _ = ~ + $ delimiters. Skips source-block content.
 #
 # Limitations: does not detect $/= inside already-wrapped =code= or ~code~ spans —
 # in practice these are rare and typically caught manually.
@@ -52,7 +53,7 @@ perl -CSD -pe '
 
   if (!$in_block && !/^[ \t]*#\+RESULTS/) {
     my $cjk   = qr/[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]/;
-    my $delim = qr/[\$=\~\+]/;
+    my $delim = qr/[\*\/_=\~\+\$]/;
 
     # delimiter immediately before CJK: "=中文" -> "= 中文"
     s/($delim)($cjk)/$1 $2/g;

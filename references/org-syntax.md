@@ -108,7 +108,9 @@ default set of boundary characters is:
 
 CJK characters (Chinese, Japanese, Korean) and full-width punctuation（`，。、：；（）【】`）
 are **NOT** in this set. Therefore, emphasis markers touching CJK text without whitespace
-will **fail to render** (fontlock won't activate):
+will **fail to render** (fontlock won't activate). This applies to **all six** emphasis
+markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
+`+` (strikethrough):
 
 ```org
 =中文=            ← WRONG: won't render
@@ -119,15 +121,27 @@ will **fail to render** (fontlock won't activate):
 结果： =lto1=     ← OK: space between CJK colon and =
 =code=。          ← WRONG: CJK period touches = after closing
 =code= 。         ← OK: space between = and CJK period
+/方案 A/：回退    ← WRONG: italic / touches CJK colon after closing
+/ 方案 A/ ：回退  ← OK: space between / and CJK
+*重点*：内容      ← WRONG: bold * touches CJK colon after closing
+* 重点 * ：内容   ← OK: space between * and CJK
+_强调_。结尾      ← WRONG: underline _ touches CJK period
+_ 强调 _ 。结尾   ← OK: space between _ and CJK
 ```
 
 **Rule**: Always insert at least one space (or ASCII punctuation) between
-`=`/`~`/`+` markers and adjacent CJK characters or full-width punctuation.
+`*`/`/`/`_`/`=`/`~`/`+` markers and adjacent CJK characters or full-width punctuation.
 
 **Check command**:
 
 ```bash
-grep -nP '[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}][=~+]|[=~+][\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]' file.org
+bash scripts/check-org-cjk-emphasis.sh file.org
+```
+
+Or with a raw grep (for quick manual checks):
+
+```bash
+grep -nP '[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}][*/_=~+]|[*/_=~+][\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]' file.org
 ```
 
 This catches all CJK characters and full-width punctuation touching emphasis markers
