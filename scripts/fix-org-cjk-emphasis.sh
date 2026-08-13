@@ -1,7 +1,11 @@
 #!/bin/bash
-# Fix org-mode markup delimiters (*, /, _, =, ~, +, $) touching CJK characters by
-# inserting a space. These will fail to render in org-mode without proper whitespace
-# boundaries.
+# Fix org-mode markup delimiters (*, /, _, =, ~, +, $) whose OUTER boundary touches
+# CJK characters, by inserting a space. These will fail to render in org-mode without
+# proper whitespace boundaries.
+#
+# Only the OUTER boundary is fixed: the space goes between the delimiter and the
+# surrounding CJK text. The delimiter stays tight against its own emphasis content
+# (e.g. /方案 A/： → /方案 A/ ：, NOT / 方案 A /：).
 #
 # Usage:
 #   fix-org-cjk-emphasis.sh <file.org>            dry-run: show what would change
@@ -32,35 +36,52 @@ if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
   echo "  --diff      Show unified diff without modifying"
   echo "  --in-place  Apply fixes directly to the file"
   echo ""
-  echo "Fixes CJK characters / full-width punctuation touching * / _ = ~ + \$ delimiters."
-  echo "Skips lines inside #+BEGIN_SRC / #+END_SRC blocks."
+  echo "Fixes CJK characters / full-width punctuation touching * / _ = ~ + \$ delimiters"
+  echo "at their outer boundary. Skips lines inside #+BEGIN_SRC / #+END_SRC blocks."
   exit 1
 fi
 
 FIXED=$(mktemp)
 trap 'rm -f "$FIXED"' EXIT
 
-# Perl script that inserts a space between CJK characters (including fullwidth
-# punctuation) and * / _ = ~ + $ delimiters. Skips source-block content.
-#
-# Limitations: does not detect $/= inside already-wrapped =code= or ~code~ spans —
-# in practice these are rare and typically caught manually.
-perl -CSD -pe '
-  BEGIN { $in_block = 0 }
+# Track pairing per delimiter type: the first occurrence opens emphasis, the next
+# closes it. On OPEN, insert a space before if the preceding char is CJK (surrounding
+# text); on CLOSE, insert a space after if the following char is CJK. Content inside
+# the emphasis is left untouched.
+perl -CSD - "$FILE" > "$FIXED" <<'PERL'
+  my $cjk   = qr/[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]/;
+  my $delim = qr/[\*\/_=\~\+\$]/;
+  my $in_block = 0;
+  while (<>) {
+    if (/^[ \t]*#\+BEGIN_SRC/)  { $in_block = 1; print; next; }
+    if (/^[ \t]*#\+END_SRC/)    { $in_block = 0; print; next; }
+    if ($in_block || /^[ \t]*#\+RESULTS/) { print; next; }
 
-  if (/^[ \t]*#\+BEGIN_SRC/)  { $in_block = 1; }
-  if (/^[ \t]*#\+END_SRC/)    { $in_block = 0; }
-
-  if (!$in_block && !/^[ \t]*#\+RESULTS/) {
-    my $cjk   = qr/[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]/;
-    my $delim = qr/[\*\/_=\~\+\$]/;
-
-    # delimiter immediately before CJK: "=中文" -> "= 中文"
-    s/($delim)($cjk)/$1 $2/g;
-    # CJK immediately before delimiter: "中文=" -> "中文 ="
-    s/($cjk)($delim)/$1 $2/g;
+    chomp;
+    my @c = split //, $_;
+    my %inside;
+    my $out = "";
+    for (my $i = 0; $i < @c; $i++) {
+      my $ch = $c[$i];
+      if ($ch =~ $delim) {
+        my $prev = $i > 0 ? $c[$i-1] : "";
+        my $next = $i < @c-1 ? $c[$i+1] : "";
+        if (!$inside{$ch}) {         # opening marker
+          $out .= " " if $prev =~ $cjk;
+          $out .= $ch;
+          $inside{$ch} = 1;
+        } else {                     # closing marker
+          $out .= $ch;
+          $out .= " " if $next =~ $cjk;
+          $inside{$ch} = 0;
+        }
+      } else {
+        $out .= $ch;
+      }
+    }
+    print "$out\n";
   }
-' "$FILE" > "$FIXED"
+PERL
 
 # Check if anything changed
 if cmp -s "$FILE" "$FIXED"; then

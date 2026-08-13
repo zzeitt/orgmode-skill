@@ -71,17 +71,21 @@ Tests cover:
 ## CJK Boundary Rule
 
 Org-mode delimiters (`*`, `/`, `_`, `=`, `~`, `+`, `$`) require whitespace or ASCII
-punctuation as boundaries. CJK characters (U+3000–U+303F, U+4E00–U+9FFF, U+FF00–U+FFEF)
-are NOT valid boundaries:
+punctuation at their **outer boundary**. CJK characters (U+3000–U+303F, U+4E00–U+9FFF,
+U+FF00–U+FFEF) are NOT valid boundaries:
 
 ```org
-结果：=lto1=     ← WRONG: CJK colon touches = (won't render)
-结果： =lto1=    ← OK: space between delimiter and CJK
-对$x$测试       ← WRONG: CJK touches $ (won't render)
-对 $x$ 测试     ← OK: spaces around $
-/方案 A/：回退  ← WRONG: italic / touches CJK colon
-/ 方案 A/ ：回退 ← OK: space between / and CJK
+结果：=lto1=      ← WRONG: CJK colon touches = (won't render)
+结果： =lto1=     ← OK: space between delimiter and CJK
+对$x$测试        ← WRONG: CJK touches $ (won't render)
+对 $x$ 测试      ← OK: spaces around $
+/方案 A/：回退   ← WRONG: italic / touches CJK colon after closing
+/方案 A/ ：回退  ← OK: content tight, space only before CJK colon
 ```
+
+**The space goes only on the OUTER boundary** — between the marker and surrounding CJK
+text — never between the marker and its own content. `*重点*`, `/方案 A/`, `=code=`,
+`_强调_` stay tight; only the surrounding CJK side gets a space.
 
 ## References
 

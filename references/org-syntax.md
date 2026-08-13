@@ -113,24 +113,27 @@ markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
 `+` (strikethrough):
 
 ```org
-=中文=            ← WRONG: won't render
-= 中文 =          ← OK: spaces act as boundary
-代码=code=示例    ← WRONG: =code= won't render
-代码 =code= 示例  ← OK
+代码=code=示例    ← WRONG: =code= won't render (CJK outside markers)
+代码 =code= 示例  ← OK: space at OUTER boundary, content stays tight
 结果：=lto1=      ← WRONG: CJK colon touches = before opening
 结果： =lto1=     ← OK: space between CJK colon and =
 =code=。          ← WRONG: CJK period touches = after closing
 =code= 。         ← OK: space between = and CJK period
 /方案 A/：回退    ← WRONG: italic / touches CJK colon after closing
-/ 方案 A/ ：回退  ← OK: space between / and CJK
+/方案 A/ ：回退   ← OK: content tight, space only before CJK colon
 *重点*：内容      ← WRONG: bold * touches CJK colon after closing
-* 重点 * ：内容   ← OK: space between * and CJK
+*重点* ：内容     ← OK: content tight, space only before CJK colon
 _强调_。结尾      ← WRONG: underline _ touches CJK period
-_ 强调 _ 。结尾   ← OK: space between _ and CJK
+_强调_ 。结尾     ← OK: content tight, space only before CJK period
 ```
 
-**Rule**: Always insert at least one space (or ASCII punctuation) between
-`*`/`/`/`_`/`=`/`~`/`+` markers and adjacent CJK characters or full-width punctuation.
+**Important — only the OUTER boundary needs the space.** The emphasis marker must stay
+tight against its own content (`*重点*`, `/方案 A/`, `=code=`, `_强调_` are correct).
+Only insert a space where the marker meets the **surrounding** CJK text: before an
+opening marker (`代码 =code=`), or after a closing marker (`=code= 示例`, `/方案 A/ ：`).
+
+**Rule**: Insert a space between an emphasis marker and the *surrounding* CJK text —
+never between the marker and its own emphasis content.
 
 **Check command**:
 
@@ -138,14 +141,8 @@ _ 强调 _ 。结尾   ← OK: space between _ and CJK
 bash scripts/check-org-cjk-emphasis.sh file.org
 ```
 
-Or with a raw grep (for quick manual checks):
-
-```bash
-grep -nP '[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}][*/_=~+]|[*/_=~+][\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]' file.org
-```
-
 This catches all CJK characters and full-width punctuation touching emphasis markers
-(outside of `#+BEGIN_SRC` / `#+END_SRC` blocks).
+at their outer boundary (outside of `#+BEGIN_SRC` / `#+END_SRC` blocks).
 
 ## Blocks
 

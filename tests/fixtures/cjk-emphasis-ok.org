@@ -9,9 +9,9 @@ check-org-cjk-emphasis.sh should report OK on this file.
 代码 =code= 示例 ← OK: spaces on both sides
 结果 ~expr~ 。 ← OK: spaces around ~
 修正 +strikethrough+ 测试 ← OK: spaces around +
-/ 方案 A / ：回退 ← OK: italic / spaced from CJK
-* 重点 * ：内容 ← OK: bold * spaced from CJK
-_ 强调 _ 。结尾 ← OK: underline _ spaced from CJK
+/方案 A/ ：回退 ← OK: italic content tight, / spaced from CJK after closing
+*重点* ：内容 ← OK: bold content tight, * spaced from CJK after closing
+_强调_ 。结尾 ← OK: underline content tight, _ spaced from CJK after closing
 
 ** Math delimiters with proper spacing
 
