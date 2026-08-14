@@ -1,6 +1,6 @@
 #!/bin/bash
 # Unit tests for orgmode-skill scripts
-# Tests check-org-cjk-emphasis.sh and fix-org-cjk-emphasis.sh against
+# Tests check-org-markup.sh and fix-org-markup.sh against
 # known-good and known-bad fixture files.
 #
 # Usage:
@@ -149,13 +149,13 @@ assert_exit 1 "check: mixed file fails" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-mixed.org"
 
 # T4: Mixed file check should NOT flag =中文= inside src block
-assert_contains "结果：=lto1=" "check: mixed detects line outside block" \
+assert_contains "结果：=foo=" "check: mixed detects line outside block" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-mixed.org"
 assert_contains "对" "check: mixed detects math error outside block" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-mixed.org"
 
 # T5: Wrong file should mention all delimiter types
-assert_contains "lto1" "check: wrong file detects = touching CJK" \
+assert_contains "foo" "check: wrong file detects = touching CJK" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
 assert_contains "expr" "check: wrong file detects ~ touching CJK" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
@@ -228,7 +228,7 @@ assert_exit 0 "fix: corrected mixed file passes check" \
 
 # T13: Verify src block content was NOT modified
 SRC_BLOCK_CONTENT=$(sed -n '/#+BEGIN_SRC python/,/#+END_SRC/p' "$FIX_TMP/mixed-copy.org")
-if echo "$SRC_BLOCK_CONTENT" | grep -q '结果：=lto1='; then
+if echo "$SRC_BLOCK_CONTENT" | grep -q '结果：=foo='; then
   PASS=$((PASS + 1))
   if $VERBOSE; then
     echo -e "[TEST] fix: src block content preserved ... ${GREEN}PASS${NC}"

@@ -74,8 +74,8 @@ punctuation at their **outer boundary**. CJK characters (U+3000–U+303F, U+4E00
 U+FF00–U+FFEF) are NOT valid boundaries:
 
 ```org
-结果：=lto1=      ← WRONG: CJK colon touches = (won't render)
-结果： =lto1=     ← OK: space between delimiter and CJK
+结果：=foo=      ← WRONG: CJK colon touches = (won't render)
+结果： =foo=     ← OK: space between delimiter and CJK
 对$x$测试        ← WRONG: CJK touches $ (won't render)
 对 $x$ 测试      ← OK: spaces around $
 /方案 A/：回退   ← WRONG: italic / touches CJK colon after closing
@@ -92,8 +92,8 @@ Derived from [majorgreys/claude-orgmode](https://github.com/majorgreys/claude-or
 
 Additions in this fork:
 - **CJK boundary rules** for emphasis (`*`, `/`, `_`, `=`, `~`, `+`) and math (`$`) delimiters
-- **`check-org-cjk-emphasis.sh`** — detect CJK touching markup delimiters
-- **`fix-org-cjk-emphasis.sh`** — auto-correct CJK-delimiter spacing (dry-run / diff / in-place)
+- **`check-org-markup.sh`** — detect CJK touching markup delimiters
+- **`fix-org-markup.sh`** — auto-correct CJK-delimiter spacing (dry-run / diff / in-place)
 - **Unit tests** with deterministic fixtures and GitHub Actions CI
 
 ## License

@@ -142,8 +142,8 @@ markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
 ```org
 代码=code=示例    ← WRONG: =code= won't render (CJK outside markers)
 代码 =code= 示例  ← OK: space at OUTER boundary, content stays tight
-结果：=lto1=      ← WRONG: CJK colon touches = before opening
-结果： =lto1=     ← OK: space between CJK colon and =
+结果：=foo=      ← WRONG: CJK colon touches = before opening
+结果： =foo=     ← OK: space between CJK colon and =
 =code=。          ← WRONG: CJK period touches = after closing
 =code= 。         ← OK: space between = and CJK period
 /方案 A/：回退    ← WRONG: italic / touches CJK colon after closing
@@ -165,7 +165,7 @@ never between the marker and its own emphasis content.
 **Check command**:
 
 ```bash
-bash scripts/check-org-cjk-emphasis.sh file.org
+bash scripts/check-org-markup.sh file.org
 ```
 
 This catches all CJK characters and full-width punctuation touching emphasis markers

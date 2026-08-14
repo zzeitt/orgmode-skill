@@ -103,7 +103,7 @@ Org-mode tags **cannot contain hyphens**. Use underscores instead:
 ### LaTeX Math
 
 ```org
-Inline: $\operatorname{atanh}(x) = \frac{1}{2}\log\frac{1+|x|}{1-|x|}$
+Inline: $\sin^2(x) + \cos^2(x) = 1$
 Display: \[ \log(1+t) = t - \frac{t^2}{2} + \frac{t^3}{3} - \cdots \]
 ```
 

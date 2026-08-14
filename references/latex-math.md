@@ -9,9 +9,9 @@ delimiters — naked `\command` in body text will NOT render.
 ## Inline Math
 
 ```org
-$\operatorname{atanh}(x) = \frac{1}{2}\log\frac{1+|x|}{1-|x|}$
-$x \mapsto (\operatorname{sgn}, |x|)$
-$|x| \ge 1$, $|x| < 2^{-28}$
+$\sin^2(x) + \cos^2(x) = 1$
+$x \mapsto y$
+$|x| \ge 1$, $|x| < 1$
 $\pm\infty$
 ```
 
@@ -55,21 +55,21 @@ r - ay, & 2r > ay
 ### Unwrapped LaTeX (WRONG)
 
 ```org
-恒等式 \operatorname{atanh}(x)=\frac{1}{2}\bigl(\log(1+|x|)-\log(1-|x|)\bigr)。
+恒等式 \sin(x)=\cos(x-\frac{\pi}{2})。
 ```
 
-The `\operatorname`, `\frac`, `\bigl`, `\log` commands are outside `$...$` → won't render.
+The `\sin`, `\cos`, `\frac` commands are outside `$...$` → won't render.
 
 ### Correctly Wrapped
 
 ```org
-恒等式 $\operatorname{atanh}(x)=\frac{1}{2}\bigl(\log(1+|x|)-\log(1-|x|)\bigr)$。
+恒等式 $\sin(x)=\cos(x-\frac{\pi}{2})$。
 ```
 
 ### Partial Wrapping (WRONG)
 
 ```org
-$\operatorname{atanh}($x)=$\frac{1}{2}\bigl($...$)$
+$\sin($x)=$\cos($x)$
 ```
 
 Each `$` toggles math mode. This creates 3 tiny math blocks instead of one continuous
@@ -80,8 +80,8 @@ expression. Wrap the entire mathematical expression as one unit.
 Every table cell that contains LaTeX needs its own `$...$`:
 
 ```org
-| x_abs = 1    | $\pm\infty$          | sign OR 0x7FF... |
-| x_abs $\le$ 0.15 | 0.5*log1p(...)   | libm log1p       |
+| 名称 = 1         | $\pm\infty$          | 备注一           |
+| 名称 $\le$ 0.15  | 0.5*foo(...)        | 备注二           |
 ```
 
 ### Chinese Text Adjacent to Math
@@ -114,10 +114,6 @@ Use the bundled script:
 ```bash
 # Check a local file
 bash ~/.claude/skills/orgmode/scripts/check-org-latex.sh file.org
-
-# For zt.dell files, download first, then check:
-ssh zt.dell "type \"D:\\path\\to\\file.org\"" > /tmp/file.org
-bash ~/.claude/skills/orgmode/scripts/check-org-latex.sh /tmp/file.org
 ```
 
 The script uses Emacs `org-element-context` to reliably detect LaTeX commands outside
@@ -130,15 +126,15 @@ org-mode's AST structure (source blocks, verbatim, tables, etc.).
 |---------|---------|---------|
 | `\log` | Logarithm | `$\log(1+x)$` |
 | `\frac{a}{b}` | Fraction | `$\frac{1}{2}$` |
-| `\operatorname{name}` | Operator name | `$\operatorname{atanh}(x)$` |
+| `\operatorname{name}` | Operator name | `$\operatorname{foo}(x)$` |
 | `\infty` | Infinity | `$\pm\infty$` |
 | `\pm` | Plus-minus | `$\pm 1$` |
 | `\inf` | Infimum (or infinity shorthand) | `$\pm\inf$` |
 | `\ge` / `\le` | Greater/less-or-equal | `$|x| \ge 1$` |
 | `\bigl(` / `\bigr)` | Sized parentheses | `$\bigl(\log(1+x)\bigr)$` |
 | `\cdot` | Multiplication dot | `$a \cdot b$` |
-| `\text{...}` | Roman text in math | `$\text{lo} + \text{hi}$` |
+| `\text{...}` | Roman text in math | `$\text{foo} + \text{bar}$` |
 | `\mapsto` | Maps to | `$x \mapsto y$` |
 | `\in` | Set membership | `$x \in [a, b)$` |
 | `\to` | Tends to | `$x \to \infty$` |
-| `\sim` | Similar/asymptotic | `$\sim 3$ cycles` |
+| `\sim` | Similar/asymptotic | `$x \sim y$` |
