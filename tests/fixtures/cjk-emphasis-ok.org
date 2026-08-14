@@ -20,6 +20,11 @@ _强调_ 。结尾 ← OK: underline content tight, _ spaced from CJK after clos
 由 $\operatorname{atanh}(x)$ 定义 ← OK: spaces around $
 $x > 0$, 即… ← OK: ASCII comma after $ needs no space
 
+** Correct bold & heading
+
+约 *13x* 提升 ← OK: org bold (single asterisk)
+** Heading with space ← OK: heading marker followed by a space
+
 ** Completely clear lines
 
 Plain text without any markup delimiters.

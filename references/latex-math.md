@@ -23,6 +23,33 @@ $\pm\infty$
 \]
 ```
 
+**Do NOT nest `\begin{…}` inside `\[…\]`.** Org treats `\[…\]` (a LaTeX *fragment*)
+and `\begin{…}…\end{…}` (a LaTeX *environment*) as distinct elements; nesting them
+(e.g. a `cases` block inside `\[…\]`) parses/renderers incorrectly. Use a standalone
+environment instead:
+
+```org
+\[
+\operatorname{rem} =
+\begin{cases}
+r, & 2r < ay \\
+r - ay, & 2r > ay
+\end{cases}
+\]
+```
+↑ WRONG: `cases` nested inside `\[…\]`.
+
+```org
+\begin{align}
+\operatorname{rem} =
+\begin{cases}
+r, & 2r < ay \\
+r - ay, & 2r > ay
+\end{cases}
+\end{align}
+```
+↑ OK: standalone `align` environment (a `cases` inside is fine).
+
 ## Common Pitfalls
 
 ### Unwrapped LaTeX (WRONG)

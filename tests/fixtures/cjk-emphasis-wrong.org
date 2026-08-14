@@ -22,3 +22,8 @@ _强调_。结尾 ← WRONG: underline _ touches CJK period after closing
 ** Multiple errors on one line
 
 $x$和$y$之间 ← WRONG: multiple $ touching CJK
+
+** Markdown bold & heading space
+
+约 **13x** 提升 ← WRONG: Markdown bold (should be *13x*)
+**Heading missing space ← WRONG: heading marker needs a space

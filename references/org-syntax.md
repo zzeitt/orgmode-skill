@@ -13,6 +13,14 @@ Headlines create the document structure using asterisks (`*`). The number of ast
 **** Fourth-level headline
 ```
 
+**Important — the marker MUST be followed by a space.** A headline marker with no
+space (`*Title`, `**Title`) is not a valid headline and won't be styled as one:
+
+```org
+**Title           ← WRONG: missing space, not a heading
+** Title          ← OK: space after the marker
+```
+
 ### Headlines with Metadata
 
 Headlines can include TODO keywords, priority, tags, and titles:
@@ -96,6 +104,25 @@ _underlined text_
 ```
 
 **Important**: Emphasis markers must have no space immediately after opening or before closing.
+
+**Org uses SINGLE markers, not Markdown doubles.** `**bold**` is Markdown syntax and
+does NOT render as bold in org — it renders as a bold span containing a literal `*`:
+
+```org
+**bold**         ← WRONG: Markdown bold, won't render as intended
+*bold*           ← OK: org bold
+```
+
+`**…**` should be `*…*`. (The double `**` at the START of a line is a level-2 headline,
+which is a different construct and must be followed by a space — see Headlines.)
+
+**Code/verbatim spans use a single `~…~` / `=…=`.** Don't split one span across
+multiple delimiters:
+
+```org
+~ex/~ey~         ← WRONG: renders as ~ex/ then stray ~ey~
+~ex/ey~          ← OK: one code span for "ex/ey"
+```
 
 ### Emphasis with CJK Characters
 
