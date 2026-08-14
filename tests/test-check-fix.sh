@@ -159,6 +159,12 @@ assert_contains "lto1" "check: wrong file detects = touching CJK" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
 assert_contains "expr" "check: wrong file detects ~ touching CJK" \
   bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
+assert_contains "方案" "check: wrong file detects / touching CJK" \
+  bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
+assert_contains "重点" "check: wrong file detects * touching CJK" \
+  bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
+assert_contains "强调" "check: wrong file detects _ touching CJK" \
+  bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org"
 
 # T6: Wrong file should mention fix hint
 check_output=$(bash "$CHECK_SCRIPT" "$FIXTURES/cjk-emphasis-wrong.org" 2>&1) || true

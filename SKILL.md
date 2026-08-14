@@ -120,7 +120,7 @@ CJK characters touching `$` without whitespace will prevent rendering.
 **Validation scripts**:
 | Script | Purpose |
 |--------+---------|
-| `scripts/check-org-cjk-emphasis.sh <file.org>` | Check `$`/`=`/`~`/`+` touching CJK (detection only) |
+| `scripts/check-org-cjk-emphasis.sh <file.org>` | Check `*`/`/`/`_`/`=`/`~`/`+`/`$` touching CJK (detection only) |
 | `scripts/fix-org-cjk-emphasis.sh [--in-place\|--diff] <file.org>` | Auto-fix CJK-delimiter spacing |
 
 > See **latex-math.md** for common pitfalls, examples, and command reference.

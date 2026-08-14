@@ -9,6 +9,9 @@ Each WRONG line should be detected by check-org-cjk-emphasis.sh.
 代码=code=示例 ← WRONG: CJK touches = (both sides)
 结果~expr~。 ← WRONG: CJK before ~, CJK period after ~
 修正 +strikethrough+测试 ← WRONG: CJK before + and after +
+/方案 A/：回退 ← WRONG: italic / touches CJK colon after closing
+*重点*：内容 ← WRONG: bold * touches CJK colon after closing
+_强调_。结尾 ← WRONG: underline _ touches CJK period after closing
 
 ** Math delimiters touching CJK
 
