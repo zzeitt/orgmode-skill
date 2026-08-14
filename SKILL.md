@@ -103,7 +103,7 @@ Org-mode tags **cannot contain hyphens**. Use underscores instead:
 ### LaTeX Math
 
 ```org
-Inline: $\operatorname{atanh}(x) = \frac{1}{2}\log\frac{1+|x|}{1-|x|}$
+Inline: $\sin^2(x) + \cos^2(x) = 1$
 Display: \[ \log(1+t) = t - \frac{t^2}{2} + \frac{t^3}{3} - \cdots \]
 ```
 
@@ -112,16 +112,17 @@ All `\` commands (`\log`, `\frac`, `\operatorname`, `\infty`, etc.) MUST be insi
 mathematical expression as one unit; avoid splitting across multiple `$...$` pairs.
 
 **Validation script**: `scripts/check-org-latex.sh <file.org>` — Uses Emacs
-`org-element-context` to detect unwrapped LaTeX commands with AST-level accuracy.
+`org-element-context` to detect unwrapped LaTeX commands and nested `\begin{…}`
+environments inside `\[…\]`.
 
 The `$` inline math delimiter follows boundary rules similar to emphasis markers:
 CJK characters touching `$` without whitespace will prevent rendering.
 
-**Validation scripts**:
+**Markup validation scripts** — detect/fix cjk-boundary, markdown-bold, and heading-space:
 | Script | Purpose |
 |--------+---------|
-| `scripts/check-org-cjk-emphasis.sh <file.org>` | Check `*`/`/`/`_`/`=`/`~`/`+`/`$` touching CJK (detection only) |
-| `scripts/fix-org-cjk-emphasis.sh [--in-place\|--diff] <file.org>` | Auto-fix CJK-delimiter spacing |
+| `scripts/check-org-markup.sh <file.org>` | Detect CJK-touching delimiters, `**bold**`, and missing heading space |
+| `scripts/fix-org-markup.sh [--in-place\|--diff] <file.org>` | Auto-fix the above |
 
 > See **latex-math.md** for common pitfalls, examples, and command reference.
 

@@ -13,6 +13,14 @@ Headlines create the document structure using asterisks (`*`). The number of ast
 **** Fourth-level headline
 ```
 
+**Important — the marker MUST be followed by a space.** A headline marker with no
+space (`*Title`, `**Title`) is not a valid headline and won't be styled as one:
+
+```org
+**Title           ← WRONG: missing space, not a heading
+** Title          ← OK: space after the marker
+```
+
 ### Headlines with Metadata
 
 Headlines can include TODO keywords, priority, tags, and titles:
@@ -97,6 +105,25 @@ _underlined text_
 
 **Important**: Emphasis markers must have no space immediately after opening or before closing.
 
+**Org uses SINGLE markers, not Markdown doubles.** `**bold**` is Markdown syntax and
+does NOT render as bold in org — it renders as a bold span containing a literal `*`:
+
+```org
+**bold**         ← WRONG: Markdown bold, won't render as intended
+*bold*           ← OK: org bold
+```
+
+`**…**` should be `*…*`. (The double `**` at the START of a line is a level-2 headline,
+which is a different construct and must be followed by a space — see Headlines.)
+
+**Code/verbatim spans use a single `~…~` / `=…=`.** Don't split one span across
+multiple delimiters:
+
+```org
+~ex/~ey~         ← WRONG: renders as ~ex/ then stray ~ey~
+~ex/ey~          ← OK: one code span for "ex/ey"
+```
+
 ### Emphasis with CJK Characters
 
 Org-mode determines emphasis boundaries via `org-emphasis-regexp-components`. The
@@ -115,8 +142,8 @@ markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
 ```org
 代码=code=示例    ← WRONG: =code= won't render (CJK outside markers)
 代码 =code= 示例  ← OK: space at OUTER boundary, content stays tight
-结果：=lto1=      ← WRONG: CJK colon touches = before opening
-结果： =lto1=     ← OK: space between CJK colon and =
+结果：=foo=      ← WRONG: CJK colon touches = before opening
+结果： =foo=     ← OK: space between CJK colon and =
 =code=。          ← WRONG: CJK period touches = after closing
 =code= 。         ← OK: space between = and CJK period
 /方案 A/：回退    ← WRONG: italic / touches CJK colon after closing
@@ -138,7 +165,7 @@ never between the marker and its own emphasis content.
 **Check command**:
 
 ```bash
-bash scripts/check-org-cjk-emphasis.sh file.org
+bash scripts/check-org-markup.sh file.org
 ```
 
 This catches all CJK characters and full-width punctuation touching emphasis markers

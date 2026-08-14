@@ -1,11 +1,11 @@
 * CJK Emphasis — Wrong Patterns (known failures)
 
 This file contains deliberately malformed org-mode markup for testing.
-Each WRONG line should be detected by check-org-cjk-emphasis.sh.
+Each WRONG line should be detected by check-org-markup.sh.
 
 ** Emphasis markers touching CJK
 
-结果：=lto1= 错误 ← WRONG: CJK colon touches = before opening
+结果：=foo= 错误 ← WRONG: CJK colon touches = before opening
 代码=code=示例 ← WRONG: CJK touches = (both sides)
 结果~expr~。 ← WRONG: CJK before ~, CJK period after ~
 修正 +strikethrough+测试 ← WRONG: CJK before + and after +
@@ -17,8 +17,13 @@ _强调_。结尾 ← WRONG: underline _ touches CJK period after closing
 
 对$x \ge 1$测试 ← WRONG: CJK touches $ (both sides)
 当 $x > 0$时 ← WRONG: CJK after closing $
-由$\operatorname{atanh}(x)$定义 ← WRONG: CJK before and after $
+由$\sin(x)$定义 ← WRONG: CJK before and after $
 
 ** Multiple errors on one line
 
 $x$和$y$之间 ← WRONG: multiple $ touching CJK
+
+** Markdown bold & heading space
+
+约 **13x** 提升 ← WRONG: Markdown bold (should be *13x*)
+**Heading missing space ← WRONG: heading marker needs a space

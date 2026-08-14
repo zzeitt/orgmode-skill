@@ -1,11 +1,11 @@
 * CJK Emphasis — Correct Patterns
 
 This file contains properly formatted org-mode markup.
-check-org-cjk-emphasis.sh should report OK on this file.
+check-org-markup.sh should report OK on this file.
 
 ** Emphasis markers with proper spacing
 
-结果： =lto1= 错误 ← OK: space between CJK colon and =
+结果： =foo= 错误 ← OK: space between CJK colon and =
 代码 =code= 示例 ← OK: spaces on both sides
 结果 ~expr~ 。 ← OK: spaces around ~
 修正 +strikethrough+ 测试 ← OK: spaces around +
@@ -17,8 +17,13 @@ _强调_ 。结尾 ← OK: underline content tight, _ spaced from CJK after clos
 
 对 $x \ge 1$ 测试 ← OK: spaces around $
 当 $x > 0$ 时 ← OK: space before CJK after $
-由 $\operatorname{atanh}(x)$ 定义 ← OK: spaces around $
+由 $\sin(x)$ 定义 ← OK: spaces around $
 $x > 0$, 即… ← OK: ASCII comma after $ needs no space
+
+** Correct bold & heading
+
+约 *13x* 提升 ← OK: org bold (single asterisk)
+** Heading with space ← OK: heading marker followed by a space
 
 ** Completely clear lines
 
