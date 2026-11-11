@@ -1,12 +1,24 @@
 name: Bump Version
 
-# On push to main, auto-bump patch version via a bump branch + PR.
-# Skips commits with [bump] or [skip ci] to prevent infinite loops.
-# For minor/major bumps, manually edit the version in SKILL.md frontmatter.
+# On push to main, two jobs:
+#
+#   bump — open a PR that bumps the patch version. Skipped for commit messages
+#          containing [bump] (the bump PR itself) or [skip ci].
+#   tag  — tag main with the version currently in SKILL.md, once that version
+#          has actually landed on main.
+#
+# Tags are created here, never on the bump branch, so release.yml always
+# releases a commit that is on main and the tag can never point at an
+# unmerged bump commit. The tag job also picks up manual minor/major bumps
+# in SKILL.md: push the version change, and the tag follows on merge.
 
 on:
   push:
     branches: [main]
+
+concurrency:
+  group: bump-version-main
+  cancel-in-progress: false
 
 jobs:
   bump:
@@ -42,21 +54,30 @@ jobs:
           echo "version=$VER" >> $GITHUB_OUTPUT
           echo "new: $VER"
 
-      - name: Create bump PR and tag
+      - name: Create bump PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW: ${{ steps.newver.outputs.version }}
           OLD: ${{ steps.version.outputs.current }}
         run: |
           BRANCH="bump/v${NEW}"
+
+          # A bump PR for this version is already open (e.g. two pushes landed
+          # before it was merged). Don't fight over the branch.
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Branch $BRANCH already exists; skipping duplicate bump."
+            exit 0
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "$BRANCH"
           git add SKILL.md
-          git commit -m "chore: bump version ${OLD} → ${NEW} [bump][skip ci]"
-          git tag "v${NEW}"
-          git push origin "$BRANCH" --tags
+          # No [skip ci]: the tag job must run on the merge commit that carries
+          # this message. [bump] alone stops the loop.
+          git commit -m "chore: bump version ${OLD} → ${NEW} [bump]"
+          git push origin "$BRANCH"
 
           gh pr create \
             --base main \
@@ -68,5 +89,42 @@ jobs:
           |------|----|
           | **${OLD}** | **${NEW}** |
 
-          Tag \`v${NEW}\` already exists — merging this PR keeps \`main\` in sync." \
+          The \`v${NEW}\` tag is created on \`main\` after this PR merges, not here." \
             --label "bump"
+
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Read version from SKILL.md
+        id: version
+        run: |
+          VER=$(awk '/^---/{f++; next} f==1 && /^version:/{print $2; exit}' SKILL.md)
+          if [ -z "$VER" ]; then
+            echo "ERROR: 'version:' not found in SKILL.md frontmatter"
+            exit 1
+          fi
+          echo "version=$VER" >> $GITHUB_OUTPUT
+          echo "version: $VER"
+
+      - name: Tag main if this version is not tagged yet
+        env:
+          VER: ${{ steps.version.outputs.version }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${VER}" >/dev/null; then
+            echo "Tag v${VER} already exists; nothing to do."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VER}" -m "Release v${VER}"
+          git push origin "refs/tags/v${VER}"
+          echo "Tagged main ($(git rev-parse --short HEAD)) as v${VER}."
