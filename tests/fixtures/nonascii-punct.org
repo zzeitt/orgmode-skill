@@ -1,0 +1,22 @@
+* Non-ASCII Punctuation Boundaries
+
+Org's emphasis boundary sets are ASCII-only, so characters outside the CJK
+blocks — em dash, ellipsis, middle dot — also break rendering when they touch
+a delimiter. Each WRONG line below must be detected.
+
+** Emphasis after non-ASCII punctuation
+
+可满足——~unsat~时      ← WRONG: em dash (U+2014) before ~, CJK after ~
+中文……=code=后         ← WRONG: ellipsis (U+2026) before =, CJK after =
+中文·*重点*后          ← WRONG: middle dot (U+00B7) before *, CJK after *
+
+** Math after non-ASCII punctuation
+
+可满足——$x$以及        ← WRONG: em dash before $, CJK after $
+
+** Clean counterparts
+
+可满足—— ~unsat~ 时    ← OK: space after em dash
+中文…… =code= 后       ← OK: space after ellipsis
+中文· *重点* 后        ← OK: space after middle dot
+可满足—— \(x\) 以及    ← OK: \(…\) has no boundary restriction

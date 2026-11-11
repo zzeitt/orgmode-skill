@@ -104,25 +104,31 @@ Org-mode tags **cannot contain hyphens**. Use underscores instead:
 
 ```org
 Inline: $\sin^2(x) + \cos^2(x) = 1$
+Inline (CJK-safe): \(\sin^2(x) + \cos^2(x) = 1\)
 Display: \[ \log(1+t) = t - \frac{t^2}{2} + \frac{t^3}{3} - \cdots \]
 ```
 
 All `\` commands (`\log`, `\frac`, `\operatorname`, `\infty`, etc.) MUST be inside
-`$...$` or `\[...\]` — naked `\command` in body text will NOT render. Wrap the entire
-mathematical expression as one unit; avoid splitting across multiple `$...$` pairs.
+`$...$`, `\(...\)` or `\[...\]` — naked `\command` in body text will NOT render. Wrap
+the entire mathematical expression as one unit; avoid splitting across multiple
+`$...$` pairs.
 
 **Validation script**: `scripts/check-org-latex.sh <file.org>` — Uses Emacs
 `org-element-context` to detect unwrapped LaTeX commands and nested `\begin{…}`
 environments inside `\[…\]`.
 
-The `$` inline math delimiter follows boundary rules similar to emphasis markers:
-CJK characters touching `$` without whitespace will prevent rendering.
+The `$` inline math delimiter follows the same boundary rule as emphasis markers:
+any **non-ASCII** character touching `$` without whitespace prevents rendering —
+CJK and fullwidth punctuation, but also `——` (U+2014), `……` (U+2026), `·` (U+00B7)
+and curly quotes, because org's boundary sets are ASCII-only. In CJK prose prefer
+`\(...\)` over `$...$`: `\(...\)` has no boundary restriction, so it renders while
+touching Chinese text and needs no artificial spaces.
 
-**Markup validation scripts** — detect/fix cjk-boundary, markdown-bold, and heading-space:
+**Markup validation scripts** — detect/fix cjk-boundary (non-ASCII boundary), markdown-bold, and heading-space:
 | Script | Purpose |
 |--------+---------|
-| `scripts/check-org-markup.sh <file.org>` | Detect CJK-touching delimiters, `**bold**`, and missing heading space |
-| `scripts/fix-org-markup.sh [--in-place\|--diff] <file.org>` | Auto-fix the above |
+| `scripts/check-org-markup.sh <file.org>` | Detect non-ASCII-touching delimiters, `**bold**`, and missing heading space |
+| `scripts/fix-org-markup.sh [--in-place\|--diff] [--spaces] <file.org>` | Auto-fix the above; converts `$…$` → `\(…\)` by default, `--spaces` inserts spaces instead |
 
 > See **latex-math.md** for common pitfalls, examples, and command reference.
 

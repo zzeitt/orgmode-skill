@@ -124,19 +124,21 @@ multiple delimiters:
 ~ex/ey~          ← OK: one code span for "ex/ey"
 ```
 
-### Emphasis with CJK Characters
+### Emphasis Next to Non-ASCII Characters
 
 Org-mode determines emphasis boundaries via `org-emphasis-regexp-components`. The
-default set of boundary characters is:
+default boundary sets are **ASCII-only**:
 
 ```
-("-[:space:]('\"{" . "-[:space:].,:!?;'\")\\[")
+pre:  -[:space:]('"{
+post: -[:space:].,:!?;'")\\[
 ```
 
-CJK characters (Chinese, Japanese, Korean) and full-width punctuation（`，。、：；（）【】`）
-are **NOT** in this set. Therefore, emphasis markers touching CJK text without whitespace
-will **fail to render** (fontlock won't activate). This applies to **all six** emphasis
-markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
+Therefore any **non-ASCII** character touching a marker without whitespace makes it
+**fail to render** (fontlock won't activate). That includes CJK characters, full-width
+punctuation（`，。、：；（）【】`）, and also `——` (U+2014), `……` (U+2026), `·`
+(U+00B7) and curly quotes. This applies to **all six** emphasis markers:
+`*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
 `+` (strikethrough):
 
 ```org
@@ -152,15 +154,21 @@ markers: `*` (bold), `/` (italic), `_` (underline), `=` (verbatim), `~` (code),
 *重点* ：内容     ← OK: content tight, space only before CJK colon
 _强调_。结尾      ← WRONG: underline _ touches CJK period
 _强调_ 。结尾     ← OK: content tight, space only before CJK period
+可满足——~unsat~   ← WRONG: em dash (U+2014) touches ~ before opening
+可满足—— ~unsat~  ← OK: space after em dash
 ```
 
 **Important — only the OUTER boundary needs the space.** The emphasis marker must stay
 tight against its own content (`*重点*`, `/方案 A/`, `=code=`, `_强调_` are correct).
-Only insert a space where the marker meets the **surrounding** CJK text: before an
+Only insert a space where the marker meets the **surrounding** text: before an
 opening marker (`代码 =code=`), or after a closing marker (`=code= 示例`, `/方案 A/ ：`).
 
-**Rule**: Insert a space between an emphasis marker and the *surrounding* CJK text —
-never between the marker and its own emphasis content.
+**Rule**: Insert a space between an emphasis marker and the *surrounding* non-ASCII
+text — never between the marker and its own emphasis content.
+
+Inline math `$...$` obeys the same boundary rule. Unlike emphasis markers, it has an
+alternative delimiter: `\(...\)` has no boundary restriction, so in CJK prose prefer
+`\(x\)` over `$x$` (no spaces needed). See [latex-math.md](latex-math.md).
 
 **Check command**:
 
@@ -168,8 +176,8 @@ never between the marker and its own emphasis content.
 bash scripts/check-org-markup.sh file.org
 ```
 
-This catches all CJK characters and full-width punctuation touching emphasis markers
-at their outer boundary (outside of `#+BEGIN_SRC` / `#+END_SRC` blocks).
+This catches any non-ASCII character touching emphasis/math delimiters at their outer
+boundary (outside of `#+BEGIN_SRC` / `#+END_SRC` blocks).
 
 ## Blocks
 

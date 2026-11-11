@@ -84,28 +84,43 @@ Every table cell that contains LaTeX needs its own `$...$`:
 | 名称 $\le$ 0.15  | 0.5*foo(...)        | 备注二           |
 ```
 
-### Chinese Text Adjacent to Math
+### Non-ASCII Text Adjacent to Math
 
 **Important**: org-mode inline math delimiters `$...$` have boundary requirements
 similar to emphasis markers (`*`, `/`, `~`, `=`). The opening `$` must be preceded by
-whitespace, `-`, `(`, `'`, `"`, or line start. CJK characters (both CJK ideographs and
-full-width punctuation `：，。；！？、（）`) are NOT in this allowed set, so `$...$`
-touching CJK text without an intervening space will fail to render:
+whitespace, `-`, `(`, `'`, `"`, or line start; the closing `$` must be followed by
+whitespace or one of `.,:!?;'")}\[`. These boundary sets are **ASCII-only**, so any
+non-ASCII character touching `$` will make it fail to render — not just CJK
+ideographs and fullwidth punctuation (`：，。；！？、（）`), but also em dashes
+`——` (U+2014), ellipses `……` (U+2026), middle dots `·` (U+00B7) and curly quotes:
 
 ```org
 对$x \ge 1$（含$\pm\infty$）返回 NaN。    ← WRONG: $ won't render
-对 $x \ge 1$ (含 $\pm\infty$) 返回 NaN。  ← OK: space before/after $
+可满足——$x$以及                          ← WRONG: em dash before $, CJK after $
 ```
 
-**Rule**: always insert a space between `$` delimiters and adjacent CJK
-characters or CJK punctuation. ASCII punctuation (`.` `,` `;` `?` etc.) after the
-closing `$` is fine and does not need extra spacing:
+There are two valid fixes:
+
+**Option A (preferred for CJK prose): switch to `\(...\)`.** A LaTeX fragment in
+`\(...\)` has no boundary restriction, so it renders even while touching Chinese
+text. The exported result is identical to `$...$`, and no unnatural spaces are
+needed. `fix-org-markup.sh` applies this by default:
 
 ```org
-$x > 0$时…        ← WRONG: CJK char after $
-$x > 0$ 时…       ← OK: space before CJK
-$x > 0$, 即…      ← OK: ASCII comma after $ needs no space
+对\(x \ge 1\)（含\(\pm\infty\)）返回 NaN。  ← OK
+可满足——\(x\)以及                        ← OK
 ```
+
+**Option B: insert spaces around `$...$`.** This keeps the `$` delimiter but adds
+spaces on both outer boundaries. `fix-org-markup.sh --spaces` applies this form:
+
+```org
+对 $x \ge 1$ (含 $\pm\infty$) 返回 NaN。   ← OK
+可满足—— $x$ 以及                        ← OK
+```
+
+ASCII punctuation (`.` `,` `;` `?` etc.) after the closing `$` is fine and does not
+need extra spacing: `$x > 0$, 即…` ← OK. Only non-ASCII boundaries require a fix.
 
 ## Checking for Unwrapped LaTeX
 

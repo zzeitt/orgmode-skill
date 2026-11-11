@@ -1,7 +1,8 @@
 #!/bin/bash
 # Check an org-mode file for common markup pitfalls:
 #   1. cjk-boundary  — a markup delimiter (* / _ = ~ + $) whose OUTER boundary touches
-#                      CJK text (fails to render in org-mode).
+#                      a non-ASCII character (CJK text, fullwidth punctuation, em dash,
+#                      ellipsis, middle dot, …). Fails to render in org-mode.
 #   2. markdown-bold — Markdown **bold** instead of org *bold*.
 #   3. heading-space — a heading marker (*+) missing the space before its title.
 #
@@ -17,7 +18,12 @@ if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
 fi
 
 matches=$(perl -CSD - "$FILE" <<'PERL' 2>/dev/null || true
-  my $cjk   = qr/[\x{3000}-\x{303f}\x{4e00}-\x{9fff}\x{ff00}-\x{ffef}]/;
+  # Org's emphasis pre/post boundary sets (org-emphasis-regexp-components) are
+  # ASCII-only: "-[:space:]('\"{" … "-[:space:].,:!?;'\")\\[". So ANY non-ASCII
+  # character on the outer boundary breaks rendering — not just the CJK blocks
+  # (U+3000–U+303F, U+4E00–U+9FFF, U+FF00–U+FFEF), but also — (U+2014),
+  # … (U+2026), · (U+00B7), curly quotes, etc.
+  my $bad   = qr/[^\x00-\x7f]/;
   my $delim = qr/[\*\/_=\~\+\$]/;
   my $in_block = 0;
   while (<>) {
@@ -37,20 +43,31 @@ matches=$(perl -CSD - "$FILE" <<'PERL' 2>/dev/null || true
       push @issues, "heading-space";
     }
 
-    # 3. CJK boundary (pairing state machine per delimiter type)
+    # 3. Non-ASCII boundary (pairing state machine per delimiter type)
     my @c = split //, $line;
+
+    # Escaped $ (i.e. \$) is a literal dollar sign, not a math delimiter.
+    my %esc;
+    my $bs = 0;
+    for (my $i = 0; $i < @c; $i++) {
+      if ($c[$i] eq '\\') { $bs++; next; }
+      $esc{$i} = 1 if $c[$i] eq '$' && $bs % 2;
+      $bs = 0;
+    }
+
     my %inside;
     my $cjk_violation = 0;
     for (my $i = 0; $i < @c; $i++) {
       my $ch = $c[$i];
       next unless $ch =~ $delim;
+      next if $esc{$i};
       my $prev = $i > 0 ? $c[$i-1] : "";
       my $next = $i < @c-1 ? $c[$i+1] : "";
       if (!$inside{$ch}) {          # opening marker
-        $cjk_violation = 1, last if $prev =~ $cjk;
+        $cjk_violation = 1, last if $prev ne "" && $prev =~ $bad;
         $inside{$ch} = 1;
       } else {                      # closing marker
-        $cjk_violation = 1, last if $next =~ $cjk;
+        $cjk_violation = 1, last if $next ne "" && $next =~ $bad;
         $inside{$ch} = 0;
       }
     }
@@ -68,7 +85,8 @@ else
   echo "$matches"
   echo ""
   echo "Fix:"
-  echo "  cjk-boundary:  add a space at the OUTER boundary of the delimiter (not inside)."
+  echo "  cjk-boundary:  math \$…\$  →  \\(…\\)  (no boundary restriction; no space needed)."
+  echo "                 emphasis: add a space at the OUTER boundary (* / _ = ~ +), not inside."
   echo "  markdown-bold: **X** → *X* (org uses single asterisks)."
   echo "  heading-space: **Title → ** Title (headline markers need a space)."
   exit 1

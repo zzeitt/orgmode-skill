@@ -244,6 +244,51 @@ fi
 assert_contains '@@' "fix: --diff produces unified diff" \
   bash "$FIX_SCRIPT" --diff "$FIXTURES/cjk-emphasis-wrong.org"
 
+# ---- non-ASCII punctuation boundary tests ----
+
+echo ""
+echo "--- non-ASCII punctuation boundaries ---"
+
+PUNCT="$FIXTURES/nonascii-punct.org"
+
+# Em dash / ellipsis / middle dot are outside the CJK blocks but still invalid
+# org boundaries, so the checker must flag them too.
+assert_exit 1 "check: non-ASCII punctuation fixture fails" \
+  bash "$CHECK_SCRIPT" "$PUNCT"
+assert_contains '可满足——$x$以及' "check: em dash before \$ is flagged" \
+  bash "$CHECK_SCRIPT" "$PUNCT"
+
+# Fix converts $…$ touching non-ASCII to \(…\), which needs no spaces.
+cp "$PUNCT" "$FIX_TMP/punct.org"
+bash "$FIX_SCRIPT" --in-place "$FIX_TMP/punct.org" >/dev/null 2>&1
+assert_exit 0 "fix: non-ASCII punctuation fixture corrected" \
+  bash "$CHECK_SCRIPT" "$FIX_TMP/punct.org"
+assert_contains '可满足——\(x\)以及' "fix: \$…\$ converted to \\(…\\)" \
+  bash -c "cat '$FIX_TMP/punct.org'"
+
+# Emphasis markers have no alternative delimiter, so a space is inserted.
+assert_contains '可满足—— ~unsat~ 时' "fix: space added after em dash" \
+  bash -c "cat '$FIX_TMP/punct.org'"
+assert_contains '中文…… =code= 后' "fix: space added after ellipsis" \
+  bash -c "cat '$FIX_TMP/punct.org'"
+assert_contains '中文· *重点* 后' "fix: space added after middle dot" \
+  bash -c "cat '$FIX_TMP/punct.org'"
+
+# --spaces preserves the old behaviour: keep $…$ and insert spaces instead.
+cp "$PUNCT" "$FIX_TMP/punct-spaces.org"
+bash "$FIX_SCRIPT" --spaces --in-place "$FIX_TMP/punct-spaces.org" >/dev/null 2>&1
+assert_contains '可满足—— $x$ 以及' "fix: --spaces keeps \$…\$ and inserts spaces" \
+  bash -c "cat '$FIX_TMP/punct-spaces.org'"
+assert_exit 0 "fix: --spaces output passes check" \
+  bash "$CHECK_SCRIPT" "$FIX_TMP/punct-spaces.org"
+
+# Escaped \$ is a literal dollar sign and must not be paired as math.
+printf '价格为 \\$5，公式 $x$ 测试\n' > "$FIX_TMP/escaped-dollar.org"
+assert_exit 0 "check: escaped \\$ is not a math delimiter" \
+  bash "$CHECK_SCRIPT" "$FIX_TMP/escaped-dollar.org"
+assert_exit 0 "fix: escaped \\$ left untouched" \
+  bash "$FIX_SCRIPT" "$FIX_TMP/escaped-dollar.org"
+
 # ---- Results ----
 
 echo ""
